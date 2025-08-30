@@ -142,33 +142,14 @@
                 </button>
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav ms-auto">
-                        <li class="nav-item">
-                            <a class="nav-link active" href="{{ url('/') }}">Accueil</a>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="elevesDropdown" role="button" 
-                               data-bs-toggle="dropdown" aria-expanded="false">
-                                Élèves
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="elevesDropdown">
-                                <li><a class="dropdown-item" href="#">Liste des élèves</a></li>
-                                <li><a class="dropdown-item" href="#">Ajouter un élève</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="#">Statistiques</a></li>
-                            </ul>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">Classes</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">Notes</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">Emploi du temps</a>
-                        </li>
                         <li class="nav-item ms-lg-3">
                             <a href="{{ route('login') }}" class="btn btn-outline-light">
                                 <i class="fas fa-sign-in-alt me-1"></i> Connexion
+                            </a>
+                        </li>
+                        <li class="nav-item ms-lg-3">
+                            <a href="{{ route('login') }}" class="btn btn-outline-light">
+                                <i class="fas fa-sign-in-alt me-1"></i> Déconnexion
                             </a>
                         </li>
                     </ul>
