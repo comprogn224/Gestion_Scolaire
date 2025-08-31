@@ -2,9 +2,14 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Database\Seeders\ClasseSeeder;
+use Database\Seeders\ProfesseurSeeder;
+use Database\Seeders\MatiereSeeder;
+use Database\Seeders\EleveSeeder;
+use Database\Seeders\NoteSeeder;
+use Database\Seeders\AbsenceSeeder;
+use Database\Seeders\AdminUserSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -13,11 +18,45 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Désactiver les contraintes de clé étrangère
+        \DB::statement('SET FOREIGN_KEY_CHECKS=0');
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        // Vider les tables existantes
+        $tables = [
+            'users',
+            'professeurs',
+            'classes',
+            'matieres',
+            'eleves',
+            'notes',
+            'absences',
+            'password_reset_tokens',
+            'sessions',
+            'failed_jobs',
+        ];
+
+        foreach ($tables as $table) {
+            if (\Schema::hasTable($table)) {
+                \DB::table($table)->truncate();
+            }
+        }
+
+        // Réactiver les contraintes de clé étrangère
+        \DB::statement('SET FOREIGN_KEY_CHECKS=1');
+
+        // Créer les utilisateurs par défaut
+        $this->call([
+            AdminUserSeeder::class,
+        ]);
+
+        // Appeler les autres seeders
+        $this->call([
+            ClasseSeeder::class,
+            ProfesseurSeeder::class,
+            MatiereSeeder::class,
+            EleveSeeder::class,
+            NoteSeeder::class,
+            AbsenceSeeder::class,
         ]);
     }
 }

@@ -59,3 +59,45 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+
+
+
+// creation des migrations
+
+php artisan make:migration create_eleves_table --create=eleves
+php artisan make:migration create_professeurs_table --create=professeurs
+php artisan make:migration create_classes_table --create=classes
+php artisan make:migration create_notes_table --create=notes
+php artisan make:migration create_absences_table --create=absences
+php artisan make:migration create_matiere_table --create=matieres
+php artisan make:migration create_users_table --create=users
+
+// valider les migrations
+php artisan migrate
+
+// supprimer les migrations
+php artisan migrate:rollback
+
+// Ajouter des champs
+
+// valider la migration
+php artisan migrate
+
+// creation de modeles
+php artisan make:model Eleve
+php artisan make:model Professeur
+php artisan make:model Classe
+php artisan make:model Note
+php artisan make:model Absence
+php artisan make:model Matiere
+
+// creation de controllers
+php artisan make:controller EleveController --resource
+php artisan make:controller ProfesseurController --resource
+php artisan make:controller ClasseController --resource
+php artisan make:controller NoteController --resource
+php artisan make:controller AbsenceController --resource
+php artisan make:controller MatiereController --resource
+
+// 

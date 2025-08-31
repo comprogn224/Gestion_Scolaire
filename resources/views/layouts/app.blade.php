@@ -130,28 +130,99 @@
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
             <div class="container">
                 <a class="navbar-brand d-flex align-items-center" href="{{ url('/') }}">
                     <i class="fas fa-graduation-cap me-2"></i>
-                    Gestion Scolaire
+                    <span class="ms-2">Gestion Scolaire</span>
                 </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
-                        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto">
+                        @auth
+                            @if(auth()->user()->role === 'admin')
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{{ route('admin.dashboard') }}">Tableau de bord Admin</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{{ route('eleves.index') }}">Élèves</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{{ route('professeurs.index') }}">Professeurs</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{{ route('classes.index') }}">Classes</a>
+                                </li>
+                            @elseif(auth()->user()->role === 'professeur')
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{{ route('professeur.dashboard') }}">Tableau de bord</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="#">Mes Cours</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="#">Notes</a>
+                                </li>
+                            @elseif(auth()->user()->role === 'eleve')
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{{ route('eleve.dashboard') }}">Tableau de bord</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="#">Mes Notes</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="#">Emploi du temps</a>
+                                </li>
+                            @endif
+                        @endauth
+                    </ul>
+
+                    <!-- Right Side Of Navbar -->
                     <ul class="navbar-nav ms-auto">
-                        <li class="nav-item ms-lg-3">
-                            <a href="{{ route('login') }}" class="btn btn-outline-light">
-                                <i class="fas fa-sign-in-alt me-1"></i> Connexion
-                            </a>
-                        </li>
-                        <li class="nav-item ms-lg-3">
-                            <a href="{{ route('login') }}" class="btn btn-outline-light">
-                                <i class="fas fa-sign-in-alt me-1"></i> Déconnexion
-                            </a>
-                        </li>
+                        <!-- Authentication Links -->
+                        @guest
+                            @if (Route::has('login'))
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{{ route('login') }}">{{ __('Connexion') }}</a>
+                                </li>
+                            @endif
+
+                            @if (Route::has('register'))
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{{ route('register') }}">{{ __('Inscription') }}</a>
+                                </li>
+                            @endif
+                        @else
+                            <li class="nav-item dropdown">
+                                <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                                    {{ Auth::user()->name }}
+                                    <span class="badge bg-{{ auth()->user()->role === 'admin' ? 'danger' : (auth()->user()->role === 'professeur' ? 'success' : 'info') }}">
+                                        {{ ucfirst(auth()->user()->role) }}
+                                    </span>
+                                </a>
+
+                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                                    <a class="dropdown-item" href="{{ route('dashboard') }}">
+                                        <i class="fas fa-tachometer-alt me-2"></i>Tableau de bord
+                                    </a>
+                                    <a class="dropdown-item" href="#">
+                                        <i class="fas fa-user me-2"></i>Profil
+                                    </a>
+                                    <div class="dropdown-divider"></div>
+                                    <a class="dropdown-item" href="{{ route('logout') }}"
+                                       onclick="event.preventDefault();
+                                                     document.getElementById('logout-form').submit();">
+                                        <i class="fas fa-sign-out-alt me-2"></i>{{ __('Déconnexion') }}
+                                    </a>
+
+                                    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                                        @csrf
+                                    </form>
+                                </div>
+                            </li>
+                        @endguest
                     </ul>
                 </div>
             </div>

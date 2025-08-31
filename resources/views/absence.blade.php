@@ -4,10 +4,27 @@
 
 @push('styles')
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <style>
         .absence-badge {
             font-size: 0.95rem;
             padding: 0.35rem 0.7rem;
+        }
+        .select2-container--default .select2-selection--single {
+            height: 38px;
+            padding: 5px;
+            border: 1px solid #ced4da;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 36px;
+        }
+        .justificatif-link {
+            color: #0d6efd;
+            text-decoration: none;
+        }
+        .justificatif-link:hover {
+            text-decoration: underline;
         }
     </style>
 @endpush
@@ -49,104 +66,211 @@
                     <p class="text-muted">Suivi des absences des élèves par matière et par date.</p>
                 </div>
                 <div class="btn-toolbar mb-2 mb-md-0">
-                    <button class="btn btn-primary"><i class="bi bi-plus-circle"></i> Ajouter une absence</button>
+                    <a href="{{ route('absences.create') }}" class="btn btn-primary me-2">
+                        <i class="bi bi-plus-circle"></i> Ajouter une absence
+                    </a>
+                    <a href="{{ route('absences.import') }}" class="btn btn-outline-secondary me-2">
+                        <i class="bi bi-upload"></i> Importer
+                    </a>
+                    <a href="{{ route('absences.export') }}" class="btn btn-outline-success me-2">
+                        <i class="bi bi-download"></i> Exporter
+                    </a>
+                    <a href="{{ route('absences.statistiques') }}" class="btn btn-outline-info">
+                        <i class="bi bi-graph-up"></i> Statistiques
+                    </a>
                 </div>
             </div>
+
+            @if(session('success'))
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    {{ session('success') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
+
+            @if(session('error'))
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    {{ session('error') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
+
+            @if($errors->any())
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <ul class="mb-0">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
 
             <!-- Filters -->
-            <div class="row mb-4">
-                <div class="col-md-4">
-                    <div class="input-group">
-                        <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
-                        <input type="text" class="form-control" placeholder="Rechercher par élève...">
+            <form action="{{ route('absences.index') }}" method="GET" class="mb-4">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <select name="eleve_id" class="form-select select2">
+                            <option value="">Tous les élèves</option>
+                            @foreach($eleves as $eleve)
+                                <option value="{{ $eleve->id }}" {{ request('eleve_id') == $eleve->id ? 'selected' : '' }}>
+                                    {{ $eleve->nom }} {{ $eleve->prenom }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select name="matiere_id" class="form-select select2">
+                            <option value="">Toutes les matières</option>
+                            @foreach($matieres as $matiere)
+                                <option value="{{ $matiere->id }}" {{ request('matiere_id') == $matiere->id ? 'selected' : '' }}>
+                                    {{ $matiere->nom }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select name="classe_id" class="form-select select2">
+                            <option value="">Toutes les classes</option>
+                            @foreach($classes as $classe)
+                                <option value="{{ $classe->id }}" {{ request('classe_id') == $classe->id ? 'selected' : '' }}>
+                                    {{ $classe->niveau }} - {{ $classe->nom }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select name="justifiee" class="form-select">
+                            <option value="">Tous les statuts</option>
+                            <option value="1" {{ request('justifiee') === '1' ? 'selected' : '' }}>Justifiées</option>
+                            <option value="0" {{ request('justifiee') === '0' ? 'selected' : '' }}>Non justifiées</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="input-group">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-funnel"></i> Filtrer
+                            </button>
+                            <a href="{{ route('absences.index') }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-counterclockwise"></i>
+                            </a>
+                        </div>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <select class="form-select">
-                        <option value="">Toutes les matières</option>
-                        <option>Mathématiques</option>
-                        <option>Français</option>
-                        <option>Physique-Chimie</option>
-                        <option>Anglais</option>
-                    </select>
+                <div class="row mt-2">
+                    <div class="col-md-3">
+                        <input type="date" name="date_debut" class="form-control" value="{{ request('date_debut') }}" placeholder="Date de début">
+                    </div>
+                    <div class="col-md-3">
+                        <input type="date" name="date_fin" class="form-control" value="{{ request('date_fin') }}" placeholder="Date de fin">
+                    </div>
                 </div>
-                <div class="col-md-4">
-                    <input type="date" class="form-control">
-                </div>
-            </div>
+            </form>
 
             <!-- Absences Table -->
-            <div class="table-responsive shadow-sm rounded">
-                <table class="table table-hover align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Élève</th>
-                            <th>Classe</th>
-                            <th>Matière</th>
-                            <th>Date</th>
-                            <th>Statut</th>
-                            <th>Justification</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Absence 1 -->
-                        <tr>
-                            <td>Fatou Diallo</td>
-                            <td>Terminale C</td>
-                            <td>Mathématiques</td>
-                            <td>28-08-2025</td>
-                            <td><span class="badge bg-danger absence-badge">Absent</span></td>
-                            <td><span class="text-muted">Non justifiée</span></td>
-                            <td>
-                                <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
-                                <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
-                                <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
-                            </td>
-                        </tr>
-                        <!-- Absence 2 -->
-                        <tr>
-                            <td>Mamadou Camara</td>
-                            <td>5ème B</td>
-                            <td>Français</td>
-                            <td>27-08-2025</td>
-                            <td><span class="badge bg-warning text-dark absence-badge">Retard</span></td>
-                            <td>Certificat médical</td>
-                            <td>
-                                <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
-                                <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
-                                <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
-                            </td>
-                        </tr>
-                        <!-- Absence 3 -->
-                        <tr>
-                            <td>Aminata Bah</td>
-                            <td>6ème A</td>
-                            <td>Anglais</td>
-                            <td>26-08-2025</td>
-                            <td><span class="badge bg-success absence-badge">Présente</span></td>
-                            <td>-</td>
-                            <td>
-                                <button class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></button>
-                                <button class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></button>
-                                <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+            @if($absences->isEmpty())
+                <div class="alert alert-info">
+                    Aucune absence trouvée avec les critères de recherche sélectionnés.
+                </div>
+            @else
+                <div class="table-responsive shadow-sm rounded">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Élève</th>
+                                <th>Classe</th>
+                                <th>Matière</th>
+                                <th>Date</th>
+                                <th>Créneau</th>
+                                <th>Statut</th>
+                                <th>Justificatif</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($absences as $absence)
+                                <tr>
+                                    <td>{{ $absence->eleve->nom }} {{ $absence->eleve->prenom }}</td>
+                                    <td>{{ $absence->classe->niveau }} - {{ $absence->classe->nom }}</td>
+                                    <td>{{ $absence->matiere->nom }}</td>
+                                    <td>{{ \Carbon\Carbon::parse($absence->date)->format('d/m/Y') }}</td>
+                                    <td>{{ $absence->heure_debut }} - {{ $absence->heure_fin }}</td>
+                                    <td>
+                                        @if($absence->est_justifiee)
+                                            <span class="badge bg-success absence-badge">Justifiée</span>
+                                        @else
+                                            <span class="badge bg-danger absence-badge">Non justifiée</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($absence->chemin_justificatif)
+                                            <a href="{{ route('absences.justificatif', $absence) }}" class="justificatif-link" target="_blank">
+                                                <i class="bi bi-file-earmark-text"></i> Voir
+                                            </a>
+                                        @else
+                                            <span class="text-muted">Aucun</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        <a href="{{ route('absences.show', $absence) }}" class="btn btn-sm btn-outline-primary" title="Voir">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a href="{{ route('absences.edit', $absence) }}" class="btn btn-sm btn-outline-warning" title="Modifier">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <form action="{{ route('absences.destroy', $absence) }}" method="POST" class="d-inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette absence ?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Supprimer">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
 
-            <!-- Pagination -->
-            <nav aria-label="Page navigation" class="mt-4">
-                <ul class="pagination justify-content-center">
-                    <li class="page-item disabled"><a class="page-link" href="#">Précédent</a></li>
-                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                    <li class="page-item"><a class="page-link" href="#">2</a></li>
-                    <li class="page-item"><a class="page-link" href="#">3</a></li>
-                    <li class="page-item"><a class="page-link" href="#">Suivant</a></li>
-                </ul>
-            </nav>
+                <!-- Pagination -->
+                <div class="d-flex justify-content-between align-items-center mt-4">
+                    <div class="text-muted">
+                        Affichage de {{ $absences->firstItem() }} à {{ $absences->lastItem() }} sur {{ $absences->total() }} absences
+                    </div>
+                    {{ $absences->withQueryString()->links() }}
+                </div>
+            @endif
         </main>
     </div>
 </div>
+@push('scripts')
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+        $(document).ready(function() {
+            // Initialisation de Select2
+            $('.select2').select2({
+                placeholder: 'Sélectionner...',
+                allowClear: true,
+                width: '100%'
+            });
+
+            // Initialisation de Flatpickr pour les champs de date
+            flatpickr("input[type=date]", {
+                dateFormat: "Y-m-d",
+                locale: "fr"
+            });
+
+            // Gestion de la suppression avec confirmation
+            $('.btn-delete').on('click', function(e) {
+                e.preventDefault();
+                if (confirm('Êtes-vous sûr de vouloir supprimer cette absence ?')) {
+                    $(this).closest('form').submit();
+                }
+            });
+        });
+    </script>
+@endpush
+
 @endsection
